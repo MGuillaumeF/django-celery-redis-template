@@ -1,0 +1,38 @@
+Install python
+Install Redis https://developer.redis.com/create/windows/
+
+python.exe -m venv venv
+.\venv\Scripts\activate
+
+
+python -m pip install pip --upgrade
+python -m pip install redis django-celery-beat django-celery-results python-decouple
+python manage.py makemigrations
+python manage.py migrate
+# --beat not work on windows
+celery -A my_project worker --beat
+python manage.py startapp my_app
+python manage.py makemigrations
+python manage.py migrate
+celery -A my_project worker -l info
+
+
+python manage.py shell
+from my_app.tasks import add, mul, xsum
+add(1,3)
+add.delay(1,3)
+
+
+
+Si cette erreur apparait c'est que la configuration entre celery et redis ne se fait pas, ici 6380 alors que cela devrait être 6379
+Solution => changer dans /etc/redis/redis.conf le port 6379 pour 6380 et relancer le server
+
+[2023-02-08 02:04:35,012: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6380//: Error 10061 connecting to localhost:6380. Aucune connexion n’a pu être établie car l’ordinateur cible l’a expressément refusée..
+Trying again in 28.00 seconds... (14/100)
+
+
+
+    Check ufw status ufw status if Status: active then allow redis-port ufw allow 6379
+    vi /etc/redis/redis.conf
+    Change the bind 127.0.0.1 to bind 0.0.0.0
+    change the protected-mode yes to protected-mode no
